@@ -33,7 +33,7 @@ module spi_master (
 	logic cs0_n_r;
 	logic cs1_n_r;
 
-	typedef enum logic [2:0] {
+	typedef enum logic [1:0] {
                 IDLE,
         	BUSY,
 		DONE
@@ -43,7 +43,7 @@ module spi_master (
 
 	always_ff @(posedge clk) begin
 		if (~rst_n) begin // clear
-			state <= '0;
+			state <= IDLE;
 			sck_r <= '0;
 			cs0_n_r <= 1;
 			cs1_n_r <= 1;
