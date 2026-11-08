@@ -74,6 +74,8 @@ module memory_controller (
 		if (~rst_n) begin
 			m_c_state <= FETCH;
 			io_out_r <= '0;
+			ir <= '0;      // 0x0000 = @0, so no X reaches the CPU before the first fetch
+			m_reg <= '0;
 		end else begin
 			m_c_state <= m_c_n_state;
 			case (m_c_state)
@@ -95,8 +97,10 @@ module memory_controller (
 	                            (((m_c_state == READ) | (m_c_state == WRITE)) & ~is_io));
 	assign mem_flash = (m_c_state == FETCH);
 	assign mem_we    = (m_c_state == WRITE);
-	assign mem_addr  = mem_flash ? {8'b0, pc, 1'b0}              // ROM from 0x000000
-	                             : {7'b0, 1'b1, addressM, 1'b0}; // RAM from 0x010000
+	// flash (CS0) and PSRAM (CS1) are separate chips, so ROM and RAM both
+	// start at byte 0 of their own chip; byte address = 2 * word address
+	assign mem_addr  = mem_flash ? {8'b0, pc, 1'b0}        // ROM: flash byte 2*pc
+	                             : {8'b0, addressM, 1'b0}; // RAM: PSRAM byte 2*addressM
 	assign mem_wdata = outM;
 
 	assign advance     = (m_c_state == COMMIT);
